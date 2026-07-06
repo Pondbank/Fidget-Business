@@ -4,178 +4,101 @@
 <meta charset="UTF-8">
 <title>Fidget Sales AI</title>
 <style>
-body {
-    margin: 0;
-    font-family: system-ui, sans-serif;
-    background: radial-gradient(circle at top, #1a1333, #0b0814);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.chat {
-    width: 440px;
-    height: 86vh;
-    display: flex;
-    flex-direction: column;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 22px;
-    backdrop-filter: blur(18px);
-    overflow: hidden;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.65);
-}
-.header {
-    padding: 16px;
-    text-align: center;
-    font-weight: 900;
-    letter-spacing: 1px;
-    background: linear-gradient(90deg, #ff6a88, #ff99ac);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.info {
-    margin: 10px 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, rgba(255,106,136,0.15), rgba(79,172,254,0.10));
-    border: 1px solid rgba(255,255,255,0.14);
-    color: white;
-    font-size: 13px;
-    line-height: 1.45;
-    text-align: center;
-}
-#log {
-    flex: 1;
-    padding: 12px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.msg {
-    padding: 10px 12px;
-    border-radius: 14px;
-    max-width: 82%;
-    font-size: 14px;
-    white-space: pre-wrap;
-}
-.user {
-    align-self: flex-end;
-    background: #4facfe;
-    color: black;
-}
-.ai {
-    align-self: flex-start;
-    background: rgba(255,255,255,0.08);
-    color: white;
-}
-.ai.error {
-    background: rgba(255,90,90,0.18);
-}
-.inputBar {
-    display: flex;
-    padding: 10px;
-    gap: 10px;
-    background: rgba(0,0,0,0.25);
-}
-textarea {
-    flex: 1;
-    border-radius: 10px;
-    padding: 10px;
-    border: none;
-    background: rgba(255,255,255,0.06);
-    color: white;
-    outline: none;
-    resize: none;
-}
-button {
-    padding: 0 16px;
-    border: none;
-    border-radius: 10px;
-    background: #ff6a88;
-    font-weight: 800;
-    cursor: pointer;
-}
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+  body { margin: 0; font-family: system-ui, sans-serif; background: #0b0814; height: 100vh; display: flex; justify-content: center; align-items: center; }
+  .chat { width: 440px; height: 86vh; display: flex; flex-direction: column; background: #1a1333; border: 1px solid #333; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+  .header { padding: 16px; text-align: center; font-weight: bold; background: #2a1f4c; color: #ff99ac; }
+  #log { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .msg { padding: 10px 14px; border-radius: 12px; max-width: 80%; font-size: 14px; white-space: pre-wrap; line-height: 1.4; }
+  .user { align-self: flex-end; background: #4facfe; color: black; }
+  .ai { align-self: flex-start; background: #332955; color: white; }
+  .error { align-self: flex-start; background: #552929; color: #ffcccc; font-weight: bold; }
+  .system { align-self: center; background: #1b4d24; color: #bdfcc9; font-size: 12px; }
+  .inputBar { display: flex; padding: 10px; gap: 10px; background: #110c22; }
+  textarea { flex: 1; border-radius: 8px; padding: 10px; border: none; background: #22193b; color: white; outline: none; resize: none; font-family: inherit; }
+  button { padding: 0 16px; border: none; border-radius: 8px; background: #ff6a88; font-weight: bold; cursor: pointer; color: black; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 </head>
 <body>
 <div class="chat">
-<div class="header">🧩 Fidgety AI</div>
-<div class="info">
-<b>How ordering works</b><br><br>
-1️⃣ Chat with the AI to place your fidget toy order<br>
-2️⃣ Provide details<br>
-3️⃣ Confirm → order is placed automatically 📧
-</div>
-<div id="log"></div>
-<div class="inputBar">
+  <div class="header">🧩 Fidget Sales AI</div>
+  <div id="log"></div>
+  <div class="inputBar">
     <textarea id="input" placeholder="Talk to the shop..." rows="1"></textarea>
     <button id="sendBtn" onclick="send()">Send</button>
+  </div>
 </div>
-</div>
+
 <script>
-// REPLACE THIS URL WITH YOUR NEWLY DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbxjRWjI3J0doxRLFQvmEdaPv0jCuexF_u4itWSQi0Cs8YQuKr37isJRD50pq2wL_0oi/exec";
+// REPLACE WITH YOUR BRAND NEW DEPLOYMENT URL
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbxRukVWXJngcQ4OiR6J4dKzr_fHfnICjFi2RcApL-dcGFPrYO7esVylAxNg8ohbMs25/exec";
 const CLIENT_TOKEN = "FIDG";
 
-const history = [];
+let history = [];
 let sending = false;
 
-function add(text, cls){
-    const div = document.createElement("div");
-    div.className = "msg " + cls;
-    div.textContent = text;
-    document.getElementById("log").appendChild(div);
-    div.scrollIntoView({ behavior: "smooth", block: "end" });
+function addMsg(text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.textContent = text;
+  document.getElementById("log").appendChild(div);
+  div.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
-function setSending(state){
-    sending = state;
-    document.getElementById("sendBtn").disabled = state;
-}
+addMsg("Hi! I'm the shop assistant. What can I help you with today?", "ai");
 
-async function send(){
-    if (sending) return;
-    const input = document.getElementById("input");
-    const text = input.value.trim();
-    if(!text) return;
-    input.value = "";
-    add(text, "user");
-    history.push({ role:"user", parts:[{text}] });
-    setSending(true);
-    try {
-        const res = await fetch(ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" }, // Bypasses browser preflight CORS checks
-            body: JSON.stringify({ history, token: CLIENT_TOKEN })
-        });
-        const data = await res.json();
-        if (data.error) {
-            add("⚠️ " + data.error, "ai error");
+async function send() {
+  if (sending) return;
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+  if (!text) return;
+  
+  input.value = "";
+  addMsg(text, "user");
+  history.push({ role: "user", text: text });
+  
+  sending = true;
+  document.getElementById("sendBtn").disabled = true;
+  document.getElementById("input").placeholder = "Sending...";
+
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" }, // CRITICAL: Bypass CORS preflight
+      body: JSON.stringify({ token: CLIENT_TOKEN, history: history })
+    });
+    
+    const data = await res.json();
+    
+    if (data.error) {
+      addMsg("⚠️ " + data.error, "error");
+    } else {
+      addMsg(data.reply, "ai");
+      history.push({ role: "model", text: data.reply });
+      
+      if (data.orderSent) {
+        if (data.emailStatus === "failed_oauth") {
+          addMsg("⚠️ Order confirmed by AI, but email failed. (Dev: Go to Apps Script and run 'doPost' manually to accept email permissions)", "error");
         } else {
-            add(data.reply, "ai");
-            history.push({ role:"model", parts:[{text: data.reply}] });
-            if(data.orderSent){
-                add("📦 Order emailed successfully!", "ai");
-            }
+          addMsg("✅ Order emailed to shop owner successfully!", "system");
         }
-    } catch (e) {
-        add("⚠️ Connection error", "ai error");
-    } finally {
-        setSending(false);
+      }
     }
+  } catch (e) {
+    addMsg("⚠️ Network/CORS Error. Make sure your Web App URL is correct and deployed as 'Anyone'.", "error");
+  } finally {
+    sending = false;
+    document.getElementById("sendBtn").disabled = false;
+    document.getElementById("input").placeholder = "Talk to the shop...";
+    document.getElementById("input").focus();
+  }
 }
 
 document.getElementById("input").addEventListener("keydown", e => {
-    if(e.key === "Enter" && !e.shiftKey){
-        e.preventDefault();
-        send();
-    }
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
 });
 </script>
 </body>
