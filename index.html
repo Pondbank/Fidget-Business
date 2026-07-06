@@ -110,6 +110,7 @@ button {
 
 <div class="chat">
     <div class="header">🧩 Fidget Sales AI</div>
+    <p style="opacity:0.8;font-size:13px;text-align:center;margin:8px 0;">Chat with the AI to negotiate a price, then provide your name, item, preferred colour, and any custom notes to complete your Fidget toy order.</p>
 
     <div id="log"></div>
 
@@ -128,6 +129,7 @@ const SYSTEM_PROMPT = `
 You are a sales assistant for a fidget toy shop in school.
 
 Available Item(s): Small Spiral Passthrough Fidget Toy (Minumum price 30p, Aim Price £3)
+Available Colour(s) Multicolour
 
 
 1. STRATEGY: Negotiate directly to see what the user is willing to pay, starting high. The absolute baseline minimum and Aim prices should be used in your thinking. You should NEVER tell the user the minimum or aim price.
