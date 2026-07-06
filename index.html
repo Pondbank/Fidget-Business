@@ -103,35 +103,41 @@ button {
     from { transform: translateY(6px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+    
 </style>
 </head>
 
 <body>
 
-<div style="
-    margin: 10px 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, rgba(255,106,136,0.15), rgba(79,172,254,0.10));
-    border: 1px solid rgba(255,255,255,0.14);
-    color: #ffffff;
-    font-size: 13px;
-    line-height: 1.45;
-    text-align: center;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-">
-🧩 <b>How ordering works</b><br><br>
+<div class="chat">
 
-1️⃣ Chat with the AI to negotiate your price<br>
-2️⃣ The bot will guide you step-by-step to complete your order:<br>
-&nbsp;&nbsp;• Name<br>
-&nbsp;&nbsp;• Item (fidget toy)<br>
-&nbsp;&nbsp;• Colour<br>
-&nbsp;&nbsp;• Custom note<br><br>
+    <div class="header">🧩 Fidget Sales AI</div>
 
-📦 When finished, your order is automatically emailed.
-</div>
+    <!-- 🧠 onboarding INSIDE chat -->
+    <div id="onboarding" style="
+        margin: 10px 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(255,106,136,0.15), rgba(79,172,254,0.10));
+        border: 1px solid rgba(255,255,255,0.14);
+        color: #ffffff;
+        font-size: 13px;
+        line-height: 1.45;
+        text-align: center;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    ">
+        🧩 <b>How ordering works</b><br><br>
+
+        1️⃣ Chat with the AI to negotiate your price<br>
+        2️⃣ The bot will guide you step-by-step:<br>
+        &nbsp;&nbsp;• Name<br>
+        &nbsp;&nbsp;• Item<br>
+        &nbsp;&nbsp;• Colour<br>
+        &nbsp;&nbsp;• Custom note<br><br>
+
+        📦 Order is automatically emailed when complete.
+    </div>
 
     <div id="log"></div>
 
@@ -139,9 +145,11 @@ button {
         <textarea id="input" placeholder="Talk to the shop..."></textarea>
         <button onclick="send()">Send</button>
     </div>
+
 </div>
 
 <script>
+    
 const API_KEY = "AIzaSyDhtsMO9vareLn9aa2q8NpirCkd2gI3Pnk";
 const MODEL = "gemini-3.1-flash-lite";
 const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycby8LzTGGXH0BvZ0Ep3Lv1i0sr5T_8lN-djyW_QBTy_Ry2bgzCppWoc1NIoucs3SBAhx/exec";
