@@ -6,7 +6,7 @@
 <style>
   body { margin: 0; font-family: system-ui, sans-serif; background: #0b0814; height: 100vh; display: flex; justify-content: center; align-items: center; }
   .chat { width: 440px; height: 86vh; display: flex; flex-direction: column; background: #1a1333; border: 1px solid #333; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-  .header { padding: 16px; text-align: center; font-weight: bold; background: #2a1f4c; color: #ff99ac; }
+  .header { padding: 16px; text-align: center; font-weight: bold; background: #2a1f4c; color: #ff99ac; letter-spacing: 0.5px; }
   #log { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
   .msg { padding: 10px 14px; border-radius: 12px; max-width: 80%; font-size: 14px; white-space: pre-wrap; line-height: 1.4; }
   .user { align-self: flex-end; background: #4facfe; color: black; }
@@ -30,8 +30,8 @@
 </div>
 
 <script>
-// REPLACE WITH YOUR BRAND NEW DEPLOYMENT URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbxRukVWXJngcQ4OiR6J4dKzr_fHfnICjFi2RcApL-dcGFPrYO7esVylAxNg8ohbMs25/exec";
+// UPDATE WITH YOUR RE-DEPLOYED WEB APP URL
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwzgq4k3NUCLvFvO4SS6vJDUjbNHGwrhuEEnZ6D5cA0mVmmFxlY5dE6qWbns3U-7EcZ/exec";
 const CLIENT_TOKEN = "FIDG";
 
 let history = [];
@@ -45,7 +45,7 @@ function addMsg(text, cls) {
   div.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
-addMsg("Hi! I'm the shop assistant. What can I help you with today?", "ai");
+addMsg("Hey there! Welcome to the shop. Interested in buying our Multicolour Small Spiral Passthrough Fidget Toy?", "ai");
 
 async function send() {
   if (sending) return;
@@ -59,33 +59,33 @@ async function send() {
   
   sending = true;
   document.getElementById("sendBtn").disabled = true;
-  document.getElementById("input").placeholder = "Sending...";
+  document.getElementById("input").placeholder = "Typing...";
 
   try {
     const res = await fetch(ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "text/plain" }, // CRITICAL: Bypass CORS preflight
+      headers: { "Content-Type": "text/plain" }, 
       body: JSON.stringify({ token: CLIENT_TOKEN, history: history })
     });
     
     const data = await res.json();
     
     if (data.error) {
-      addMsg("⚠️ " + data.error, "error");
+      addMsg("⚠️ Server Error: " + data.error, "error");
     } else {
       addMsg(data.reply, "ai");
       history.push({ role: "model", text: data.reply });
       
       if (data.orderSent) {
-        if (data.emailStatus === "failed_oauth") {
-          addMsg("⚠️ Order confirmed by AI, but email failed. (Dev: Go to Apps Script and run 'doPost' manually to accept email permissions)", "error");
+        if (data.emailStatus === "failed_api") {
+          addMsg("⚠️ Order recorded, but Gmail blocked transmission. Check Apps Script app permissions.", "error");
         } else {
-          addMsg("✅ Order emailed to shop owner successfully!", "system");
+          addMsg("✅ Order logged and emailed to shop owner!", "system");
         }
       }
     }
   } catch (e) {
-    addMsg("⚠️ Network/CORS Error. Make sure your Web App URL is correct and deployed as 'Anyone'.", "error");
+    addMsg("⚠️ Network/CORS Check failure. Ensure deployment settings allow access to 'Anyone'.", "error");
   } finally {
     sending = false;
     document.getElementById("sendBtn").disabled = false;
