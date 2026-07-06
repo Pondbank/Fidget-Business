@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fidget Sales AI</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: radial-gradient(circle at top, #1a1333, #0b0814);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat {
+    width: 420px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+}
+
+.header {
+    padding: 14px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #ff6a88, #ff99ac);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+#log {
+    flex: 1;
+    padding: 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msg {
+    padding: 10px 12px;
+    border-radius: 14px;
+    max-width: 80%;
+    font-size: 14px;
+    line-height: 1.3;
+    animation: pop 0.2s ease-out;
+}
+
+.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #000;
+}
+
+.ai {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #eaeaea;
+}
+
+.inputBar {
+    display: flex;
+    padding: 10px;
+    gap: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.2);
+}
+
+textarea {
+    flex: 1;
+    resize: none;
+    border-radius: 12px;
+    border: none;
+    padding: 10px;
+    background: rgba(255,255,255,0.06);
+    color: white;
+    outline: none;
+}
+
+button {
+    padding: 0 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #ff6a88, #ff99ac);
+    color: black;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@keyframes pop {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat">
+    <div class="header">🧩 Fidget Sales AI</div>
+
+    <div id="log"></div>
+
+    <div class="inputBar">
+        <textarea id="input" placeholder="Talk to the shop..."></textarea>
+        <button onclick="send()">Send</button>
+    </div>
+</div>
+
+<script>
+const API_KEY = "AIzaSyDhtsMO9vareLn9aa2q8NpirCkd2gI3Pnk";
+const MODEL = "gemini-3.1-flash-lite";
+const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycby8LzTGGXH0BvZ0Ep3Lv1i0sr5T_8lN-djyW_QBTy_Ry2bgzCppWoc1NIoucs3SBAhx/exec";
+
+const SYSTEM_PROMPT = `
+You are a sales assistant for a fidget toy shop in school.
+
+Available Item(s): Small Spiral Passthrough Fidget Toy (Minumum price 30p, Aim Price £3)
+
+
+1. STRATEGY: Negotiate directly to see what the user is willing to pay, starting high. The absolute baseline minimum and Aim prices should be used in your thinking. You should NEVER tell the user the minimum or aim price.
+2. COLLECT INFO:
+   - name
+   - item
+   - price
+   - color
+   - note
+3. When all fields are collected AND user agrees with the details, output ONLY:
+
+ORDER_CONFIRM:
+{
+  "name": "",
+  "item": "",
+  "price": "",
+  "color": "",
+  "note": "",
+  "chat_summary": ""
+}
+
+Keep replies short (max 2 sentences).
+Ask for missing fields after you have a vague idea of what the user would like to order.
+`;
+
+const history = [];
+
+function add(text, cls){
+    const d = document.createElement("div");
+    d.className = "msg " + cls;
+    d.textContent = text;
+    document.getElementById("log").appendChild(d);
+}
+
+async function send(){
+    const input = document.getElementById("input");
+    const text = input.value.trim();
+    if(!text) return;
+
+    input.value = "";
+    add(text, "user");
+
+    history.push({ role:"user", parts:[{text}] });
+
+    const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+        {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({
+                contents: history,
+                systemInstruction: {
+                    parts:[{text: SYSTEM_PROMPT}]
+                }
+            })
+        }
+    );
+
+    const data = await res.json();
+    let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "error";
+
+    add(reply, "ai");
+
+    history.push({ role:"model", parts:[{text: reply}] });
+
+    // 🧾 ORDER HANDLER
+    if(reply.includes("ORDER_CONFIRM:")){
+        try{
+            const json = reply.split("ORDER_CONFIRM:")[1].trim();
+            const order = JSON.parse(json);
+
+            await fetch(ORDER_ENDPOINT, {
+                method:"POST",
+                headers: { "Content-Type":"application/json" },
+                body: JSON.stringify({
+                    ...order,
+                    full_chat_history: history
+                })
+            });
+
+            add("📧 Order sent!", "ai");
+
+        } catch(e){
+            add("⚠️ Order failed", "ai");
+        }
+    }
+}
+</script>
+
+</body>
+</html>
