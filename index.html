@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fidget Sales AI</title>
+<title>Fidgety AI</title>
 <style>
   body { margin: 0; font-family: system-ui, sans-serif; background: #0b0814; height: 100vh; display: flex; justify-content: center; align-items: center; }
   .chat { width: 440px; height: 86vh; display: flex; flex-direction: column; background: #1a1333; border: 1px solid #333; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
@@ -31,7 +31,7 @@
 
 <script>
 // UPDATE WITH YOUR RE-DEPLOYED APPS SCRIPT WEB APP URL EACH TIME YOU VERSION IT
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbxPJoTuIFpecLEz63Acrtei9RX-ZFu0miZnssXgSbYJB2e6plJDMAuP4eOk7LpKIjPL/exec";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwmnmf14KpZIQuwA8TJ8hx6QxVGcPMYrb7-WgYEXllSPFSYL54MCFkpFbw0ehChqMoC/exec";
 const CLIENT_TOKEN = "FIDG";
 
 let history = [];
@@ -46,7 +46,7 @@ function addMsg(text, cls) {
 }
 
 // Initial Greeting
-addMsg("Hey there! Welcome to the shop. Interested in buying our Multicolour Small Spiral Passthrough Fidget Toy?", "ai");
+addMsg("Hey there! Welcome to the shop. Interested in buying a Fidget Toy?", "ai");
 
 async function send() {
   if (sending) return;
@@ -80,14 +80,14 @@ async function send() {
       // Handle the spreadsheet database output validation status
       if (data.orderSent) {
         if (data.sheetStatus === "failed_api") {
-          addMsg("⚠️ Order recorded by bot, but Google Sheets blocked saving. Run 'doPost' inside Apps Script once manually to authorize your new sheet permissions.", "error");
+          addMsg("⚠️ Order recorded by bot, but not sent to seller.", "error");
         } else {
-          addMsg("✅ Order completely logged and saved into your Google Sheet database!", "system");
+          addMsg("✅ Order sent to seller!", "system");
         }
       }
     }
   } catch (e) {
-    addMsg("⚠️ Network Check failure. Ensure deployment settings allow access to 'Anyone'.", "error");
+    addMsg("Connection Error");
   } finally {
     sending = false;
     document.getElementById("sendBtn").disabled = false;
