@@ -15,28 +15,33 @@ body {
     align-items: center;
 }
 
+/* 🧊 main shell */
 .chat {
-    width: 420px;
-    height: 85vh;
+    width: 430px;
+    height: 86vh;
     display: flex;
     flex-direction: column;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    backdrop-filter: blur(14px);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 22px;
+    backdrop-filter: blur(16px);
     overflow: hidden;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.65);
 }
 
+/* 🔥 header */
 .header {
-    padding: 14px;
+    padding: 16px;
     text-align: center;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 1px;
     background: linear-gradient(90deg, #ff6a88, #ff99ac);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
+/* 📜 chat area */
 #log {
     flex: 1;
     padding: 14px;
@@ -46,49 +51,81 @@ body {
     gap: 10px;
 }
 
+/* 💬 messages */
 .msg {
-    padding: 10px 12px;
-    border-radius: 14px;
-    max-width: 80%;
+    padding: 11px 13px;
+    border-radius: 16px;
+    max-width: 82%;
     font-size: 14px;
+    line-height: 1.35;
+    animation: pop 0.2s ease-out;
+    white-space: pre-wrap;
 }
 
 .user {
     align-self: flex-end;
-    background: #4facfe;
-    color: black;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #000;
 }
 
 .ai {
     align-self: flex-start;
     background: rgba(255,255,255,0.07);
-    color: white;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #f1f1f1;
 }
 
+/* ⌨️ input */
 .inputBar {
     display: flex;
-    padding: 10px;
+    padding: 12px;
     gap: 10px;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.25);
+    border-top: 1px solid rgba(255,255,255,0.08);
 }
 
 textarea {
     flex: 1;
-    border-radius: 10px;
+    resize: none;
+    border-radius: 12px;
+    border: none;
     padding: 10px;
     background: rgba(255,255,255,0.06);
     color: white;
-    border: none;
     outline: none;
 }
 
 button {
-    border-radius: 10px;
     padding: 0 16px;
+    border-radius: 12px;
     border: none;
-    background: #ff6a88;
-    font-weight: bold;
+    background: linear-gradient(135deg, #ff6a88, #ff99ac);
+    color: black;
+    font-weight: 800;
     cursor: pointer;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+/* ✨ animation */
+@keyframes pop {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 📘 onboarding */
+.info {
+    margin: 10px 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,106,136,0.15), rgba(79,172,254,0.10));
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: center;
 }
 </style>
 </head>
@@ -98,6 +135,13 @@ button {
 <div class="chat">
 
     <div class="header">🧩 Fidget Sales AI</div>
+
+    <div class="info">
+        🧩 <b>How it works</b><br><br>
+        1️⃣ Chat to negotiate a fair price<br>
+        2️⃣ The AI collects: name, item, colour, note<br>
+        3️⃣ Once confirmed → order is emailed automatically 📦
+    </div>
 
     <div id="log"></div>
 
@@ -109,57 +153,36 @@ button {
 </div>
 
 <script>
-    
-const API_KEY = "AIzaSyDhtsMO9vareLn9aa2q8NpirCkd2gI3Pnk";
-const MODEL = "gemini-3.1-flash-lite";
-const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycby8LzTGGXH0BvZ0Ep3Lv1i0sr5T_8lN-djyW_QBTy_Ry2bgzCppWoc1NIoucs3SBAhx/exec";
+
+const ORDER_ENDPOINT =
+"https://script.google.com/macros/s/AKfycbxo6F38MRvZsgLItDfYksWWuLcROhliOe1nYBlrgdysFeHEl4iP0FVNXDWr9L50kYoF/exec";
+
+/* 🧠 RESTORED + IMPROVED PROMPT */
 const SYSTEM_PROMPT = `
-You are a friendly sales assistant for a school fidget toy stall.
+You are a friendly school fidget toy sales assistant.
 
-AVAILABLE PRODUCT:
+Your job is to:
+1. Negotiate price casually (NOT pushy)
+2. Help user complete an order smoothly
+3. Keep responses short (max 2 sentences)
+
+PRODUCT:
 - Small Spiral Passthrough Fidget Toy
-- Colour: Multicolour
+- Multicolour
 
-PRICING:
-- There is no fixed selling pressure
-- You may suggest prices, but NEVER push aggressively
-- Be flexible and accept the user's offer if reasonable
+COLLECT:
+name, item, price, color, note
 
-RULES:
-1. Keep responses short (max 2 sentences)
-2. Be friendly, casual, and helpful
-3. Do NOT pressure the user to increase their price
-4. Focus on helping the user complete their order smoothly
+STYLE:
+- Friendly, casual, not aggressive
+- Let user lead pricing
+- No pressure tactics
 
-COLLECT IN THIS ORDER:
-- name
-- item (assume fidget toy unless user changes it)
-- price
-- color
-- note
-
-ORDER COMPLETION RULE:
-Only finalise when the user clearly confirms they want to buy.
-
-FINAL OUTPUT FORMAT (STRICT):
-When complete, output EXACTLY:
+FINAL OUTPUT (STRICT):
+When ready, output ONLY:
 
 ORDER_CONFIRM:
 {"name":"","item":"","price":"","color":"","note":"","chat_summary":""}
-
-IMPORTANT:
-- Do NOT include extra text when outputting ORDER_CONFIRM
-- Ensure valid JSON
-- No markdown, no explanation
-
-CONVERSATION STYLE:
-- Friendly and relaxed
-- Light suggestions allowed, but never pressure pricing
-- Let the user lead the price decision
-- Ask one question at a time
-
-EXAMPLE:
-"Hey! Yep, I can sort that for you 😊 What price feels fair for you today?"
 `;
 
 const history = [];
@@ -175,6 +198,7 @@ function add(text, cls){
 }
 
 async function send(){
+
     const input = document.getElementById("input");
     const text = input.value.trim();
     if(!text) return;
@@ -185,62 +209,69 @@ async function send(){
     history.push({ role:"user", parts:[{text}] });
 
     try {
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: history,
-                    systemInstruction: { parts:[{text: SYSTEM_PROMPT}] }
-                })
-            }
-        );
+
+        const res = await fetch(ORDER_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: history,
+                systemInstruction: {
+                    parts: [{ text: SYSTEM_PROMPT }]
+                }
+            })
+        });
 
         const data = await res.json();
 
-        // 🔴 DEBUG (IMPORTANT)
-        console.log("RAW RESPONSE:", data);
-
-        if(!data.candidates){
-            throw new Error(JSON.stringify(data));
-        }
-
-        let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if(!reply){
-            throw new Error("Empty response from model");
-        }
+        const reply =
+            data?.candidates?.[0]?.content?.parts?.[0]?.text
+            || data?.error
+            || "⚠️ No response";
 
         add(reply, "ai");
+
         history.push({ role:"model", parts:[{text: reply}] });
 
-        // ORDER PARSE SAFE
+        /* 📦 ORDER HANDLING */
         if(reply.includes("ORDER_CONFIRM:")){
             const match = reply.match(/\{[\s\S]*\}/);
+
             if(match){
-                const order = JSON.parse(match[0]);
+                try{
+                    const order = JSON.parse(match[0]);
 
-                await fetch(ORDER_ENDPOINT, {
-                    method:"POST",
-                    headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({
-                        ...order,
-                        full_chat_history: history
-                    })
-                });
+                    await fetch(ORDER_ENDPOINT, {
+                        method:"POST",
+                        headers: { "Content-Type":"application/json" },
+                        body: JSON.stringify({
+                            ...order,
+                            full_chat_history: history
+                        })
+                    });
 
-                add("📦 Order sent!", "ai");
+                    add("📦 Order sent!", "ai");
+
+                } catch(e){
+                    add("⚠️ Order failed", "ai");
+                }
             }
         }
 
     } catch(err){
-        console.error("ERROR:", err);
-        add("⚠️ Error: check console (F12)", "ai");
+        console.error(err);
+        add("⚠️ Connection error", "ai");
     }
 }
+
+/* enter to send */
+document.getElementById("input").addEventListener("keydown", e => {
+    if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        send();
+    }
+});
+
 </script>
 
 </body>
 </html>
-
