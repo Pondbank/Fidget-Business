@@ -12,7 +12,7 @@
   .user { align-self: flex-end; background: #4facfe; color: black; }
   .ai { align-self: flex-start; background: #332955; color: white; }
   .error { align-self: flex-start; background: #552929; color: #ffcccc; font-weight: bold; }
-  .system { align-self: center; background: #1b4d24; color: #bdfcc9; font-size: 12px; }
+  .system { align-self: center; background: #1b4d24; color: #bdfcc9; font-size: 12px; text-align: center; padding: 8px 12px; border-radius: 8px; }
   .inputBar { display: flex; padding: 10px; gap: 10px; background: #110c22; }
   textarea { flex: 1; border-radius: 8px; padding: 10px; border: none; background: #22193b; color: white; outline: none; resize: none; font-family: inherit; }
   button { padding: 0 16px; border: none; border-radius: 8px; background: #ff6a88; font-weight: bold; cursor: pointer; color: black; }
@@ -21,7 +21,7 @@
 </head>
 <body>
 <div class="chat">
-  <div class="header">🧩 Fidget Sales AI</div>
+  <div class="header">🧩 Fidgety AI</div>
   <div id="log"></div>
   <div class="inputBar">
     <textarea id="input" placeholder="Talk to the shop..." rows="1"></textarea>
@@ -30,8 +30,8 @@
 </div>
 
 <script>
-// UPDATE WITH YOUR RE-DEPLOYED WEB APP URL
-const ENDPOINT = "https://script.google.com/macros/s/AKfycbx7Zx6GZoE1Qc1po2Hg2r65aTkwESr3u1g6vqqbCKtmeV1teYELdIjLbzyyLVANep84/exec";
+// UPDATE WITH YOUR RE-DEPLOYED APPS SCRIPT WEB APP URL EACH TIME YOU VERSION IT
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbxPJoTuIFpecLEz63Acrtei9RX-ZFu0miZnssXgSbYJB2e6plJDMAuP4eOk7LpKIjPL/exec";
 const CLIENT_TOKEN = "FIDG";
 
 let history = [];
@@ -45,6 +45,7 @@ function addMsg(text, cls) {
   div.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
+// Initial Greeting
 addMsg("Hey there! Welcome to the shop. Interested in buying our Multicolour Small Spiral Passthrough Fidget Toy?", "ai");
 
 async function send() {
@@ -76,16 +77,17 @@ async function send() {
       addMsg(data.reply, "ai");
       history.push({ role: "model", text: data.reply });
       
+      // Handle the spreadsheet database output validation status
       if (data.orderSent) {
-        if (data.emailStatus === "failed_api") {
-          addMsg("⚠️ Order recorded, but Gmail blocked transmission. Check Apps Script app permissions.", "error");
+        if (data.sheetStatus === "failed_api") {
+          addMsg("⚠️ Order recorded by bot, but Google Sheets blocked saving. Run 'doPost' inside Apps Script once manually to authorize your new sheet permissions.", "error");
         } else {
-          addMsg("✅ Order logged and emailed to shop owner!", "system");
+          addMsg("✅ Order completely logged and saved into your Google Sheet database!", "system");
         }
       }
     }
   } catch (e) {
-    addMsg("⚠️ Network/CORS Check failure. Ensure deployment settings allow access to 'Anyone'.", "error");
+    addMsg("⚠️ Network Check failure. Ensure deployment settings allow access to 'Anyone'.", "error");
   } finally {
     sending = false;
     document.getElementById("sendBtn").disabled = false;
