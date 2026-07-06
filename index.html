@@ -15,16 +15,16 @@ body {
     align-items: center;
 }
 
-/* 🧊 main shell */
+/* 🧊 container */
 .chat {
-    width: 430px;
+    width: 440px;
     height: 86vh;
     display: flex;
     flex-direction: column;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.10);
     border-radius: 22px;
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(18px);
     overflow: hidden;
     box-shadow: 0 30px 90px rgba(0,0,0,0.65);
 }
@@ -33,86 +33,11 @@ body {
 .header {
     padding: 16px;
     text-align: center;
-    font-weight: 800;
+    font-weight: 900;
     letter-spacing: 1px;
     background: linear-gradient(90deg, #ff6a88, #ff99ac);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-/* 📜 chat area */
-#log {
-    flex: 1;
-    padding: 14px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* 💬 messages */
-.msg {
-    padding: 11px 13px;
-    border-radius: 16px;
-    max-width: 82%;
-    font-size: 14px;
-    line-height: 1.35;
-    animation: pop 0.2s ease-out;
-    white-space: pre-wrap;
-}
-
-.user {
-    align-self: flex-end;
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-    color: #000;
-}
-
-.ai {
-    align-self: flex-start;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #f1f1f1;
-}
-
-/* ⌨️ input */
-.inputBar {
-    display: flex;
-    padding: 12px;
-    gap: 10px;
-    background: rgba(0,0,0,0.25);
-    border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-textarea {
-    flex: 1;
-    resize: none;
-    border-radius: 12px;
-    border: none;
-    padding: 10px;
-    background: rgba(255,255,255,0.06);
-    color: white;
-    outline: none;
-}
-
-button {
-    padding: 0 16px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg, #ff6a88, #ff99ac);
-    color: black;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-button:hover {
-    transform: translateY(-1px);
-}
-
-/* ✨ animation */
-@keyframes pop {
-    from { transform: translateY(6px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
 }
 
 /* 📘 onboarding */
@@ -122,11 +47,69 @@ button:hover {
     border-radius: 14px;
     background: linear-gradient(135deg, rgba(255,106,136,0.15), rgba(79,172,254,0.10));
     border: 1px solid rgba(255,255,255,0.14);
-    color: #fff;
+    color: white;
     font-size: 13px;
     line-height: 1.45;
     text-align: center;
 }
+
+/* 💬 chat */
+#log {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msg {
+    padding: 10px 12px;
+    border-radius: 14px;
+    max-width: 82%;
+    font-size: 14px;
+    white-space: pre-wrap;
+}
+
+.user {
+    align-self: flex-end;
+    background: #4facfe;
+    color: black;
+}
+
+.ai {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+/* ⌨️ input */
+.inputBar {
+    display: flex;
+    padding: 10px;
+    gap: 10px;
+    background: rgba(0,0,0,0.25);
+}
+
+textarea {
+    flex: 1;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
+    background: rgba(255,255,255,0.06);
+    color: white;
+    outline: none;
+}
+
+button {
+    padding: 0 16px;
+    border: none;
+    border-radius: 10px;
+    background: #ff6a88;
+    font-weight: 800;
+    cursor: pointer;
+}
+
 </style>
 </head>
 
@@ -134,78 +117,40 @@ button:hover {
 
 <div class="chat">
 
-    <div class="header">Fidgety AI</div>
+<div class="header">🧩 Fidget Sales AI</div>
 
-    <div class="info">
-        🧩 <b>How it works</b><br><br>
-        1️⃣ Chat to Fidgety to place your order<br>
-        2️⃣ Give Fidgety your order details<br>
-        3️⃣ Once confirmed → order is sent to seller the seller automatically
-    </div>
+<div class="info">
+<b>How ordering works</b><br><br>
+1️⃣ Chat with the AI to negotiate price<br>
+2️⃣ Provide: name, item, colour, note<br>
+3️⃣ Confirm → order is emailed automatically 📧
+</div>
 
-    <div id="log"></div>
+<div id="log"></div>
 
-    <div class="inputBar">
-        <textarea id="input" placeholder="Talk to the shop..."></textarea>
-        <button onclick="send()">Send</button>
-    </div>
+<div class="inputBar">
+    <textarea id="input" placeholder="Talk to the shop..."></textarea>
+    <button onclick="send()">Send</button>
+</div>
 
 </div>
 
 <script>
 
-const ORDER_ENDPOINT =
-"https://script.google.com/macros/s/AKfycbwTr3tYdbcd9MhdgEoevUEG3S3DdaSRNZQBXHGy7TqfVJX64_Gdo9jRBixCMRtgioh1/exec";
-
-const SYSTEM_PROMPT = `
-You are a friendly school fidget toy sales assistant.
-
-TASK:
-- Help user negotiate price casually (NOT pushy)
-- Collect: name, item, price, color, note
-- Keep replies max 2 sentences
-
-PRODUCT:
-- Small Spiral Passthrough Fidget Toy
-- Multicolour
-
-RULES:
-- Friendly tone
-- No pressure on pricing
-- Ask one question at a time
-
-FINAL OUTPUT (STRICT):
-ONLY when complete output:
-
-ORDER_CONFIRM:
-{"name":"","item":"","price":"","color":"","note":"","chat_summary":""}
-`;
+const ENDPOINT =
+"https://script.google.com/macros/s/AKfycbx5RI9oEseEt1f1UzkzczHYPaz5Rwe-AQuC7dZt5o687csp-s6bOJjS66a59mXHR6Ej/exec";
 
 const history = [];
 
+/* 💬 UI */
 function add(text, cls){
     const div = document.createElement("div");
     div.className = "msg " + cls;
     div.textContent = text;
-
-    const log = document.getElementById("log");
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
+    document.getElementById("log").appendChild(div);
 }
 
-/* 🧠 SAFE PARSE */
-function extractOrder(text){
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if(start === -1 || end === -1) return null;
-
-    try {
-        return JSON.parse(text.slice(start, end + 1));
-    } catch {
-        return null;
-    }
-}
-
+/* 📦 send */
 async function send(){
 
     const input = document.getElementById("input");
@@ -219,50 +164,27 @@ async function send(){
 
     try {
 
-        const payload = encodeURIComponent(JSON.stringify({
-            contents: history,
-            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
-        }));
+        const res = await fetch(ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ history })
+        });
 
-        const res = await fetch(ORDER_ENDPOINT + "?data=" + payload);
         const data = await res.json();
 
-        const reply =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            data?.text ||
-            "⚠️ No response";
+        add(data.reply, "ai");
 
-        add(reply, "ai");
+        history.push({ role:"model", parts:[{text: data.reply}] });
 
-        history.push({ role:"model", parts:[{text: reply}] });
-
-        /* 📦 ORDER HANDLER */
-        if(reply.includes("ORDER_CONFIRM")){
-            const order = extractOrder(reply);
-
-            if(order){
-                await fetch(ORDER_ENDPOINT, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        order,
-                        full_chat_history: history
-                    })
-                });
-
-                add("📦 Order sent!", "ai");
-            } else {
-                add("⚠️ Could not parse order", "ai");
-            }
+        if(data.orderSent){
+            add("📦 Order emailed successfully!", "ai");
         }
 
-    } catch(err){
-        console.error(err);
+    } catch (e) {
         add("⚠️ Connection error", "ai");
     }
 }
 
-/* enter send */
 document.getElementById("input").addEventListener("keydown", e => {
     if(e.key === "Enter" && !e.shiftKey){
         e.preventDefault();
