@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Fidget Sales AI</title>
-
 <style>
 body {
     margin: 0;
@@ -14,8 +13,7 @@ body {
     justify-content: center;
     align-items: center;
 }
-
-/* 🧊 container */
+/* container */
 .chat {
     width: 440px;
     height: 86vh;
@@ -28,8 +26,7 @@ body {
     overflow: hidden;
     box-shadow: 0 30px 90px rgba(0,0,0,0.65);
 }
-
-/* 🔥 header */
+/* header */
 .header {
     padding: 16px;
     text-align: center;
@@ -39,8 +36,7 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
-/* 📘 onboarding */
+/* onboarding */
 .info {
     margin: 10px 12px;
     padding: 12px 14px;
@@ -52,8 +48,7 @@ body {
     line-height: 1.45;
     text-align: center;
 }
-
-/* 💬 chat */
+/* chat */
 #log {
     flex: 1;
     padding: 12px;
@@ -62,7 +57,6 @@ body {
     flex-direction: column;
     gap: 10px;
 }
-
 .msg {
     padding: 10px 12px;
     border-radius: 14px;
@@ -70,27 +64,26 @@ body {
     font-size: 14px;
     white-space: pre-wrap;
 }
-
 .user {
     align-self: flex-end;
     background: #4facfe;
     color: black;
 }
-
 .ai {
     align-self: flex-start;
     background: rgba(255,255,255,0.08);
     color: white;
 }
-
-/* ⌨️ input */
+.ai.error {
+    background: rgba(255,90,90,0.18);
+}
+/* input */
 .inputBar {
     display: flex;
     padding: 10px;
     gap: 10px;
     background: rgba(0,0,0,0.25);
 }
-
 textarea {
     flex: 1;
     border-radius: 10px;
@@ -99,8 +92,8 @@ textarea {
     background: rgba(255,255,255,0.06);
     color: white;
     outline: none;
+    resize: none;
 }
-
 button {
     padding: 0 16px;
     border: none;
@@ -109,79 +102,83 @@ button {
     font-weight: 800;
     cursor: pointer;
 }
-
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 </style>
 </head>
-
 <body>
-
 <div class="chat">
-
 <div class="header">🧩 Fidget Sales AI</div>
-
 <div class="info">
 <b>How ordering works</b><br><br>
 1️⃣ Chat with the AI to negotiate price<br>
 2️⃣ Provide: name, item, colour, note<br>
 3️⃣ Confirm → order is emailed automatically 📧
 </div>
-
 <div id="log"></div>
-
 <div class="inputBar">
-    <textarea id="input" placeholder="Talk to the shop..."></textarea>
-    <button onclick="send()">Send</button>
+    <textarea id="input" placeholder="Talk to the shop..." rows="1"></textarea>
+    <button id="sendBtn" onclick="send()">Send</button>
 </div>
-
 </div>
-
 <script>
-
+// Replace with your deployed Apps Script Web App URL
 const ENDPOINT =
-"https://script.google.com/macros/s/AKfycbx5RI9oEseEt1f1UzkzczHYPaz5Rwe-AQuC7dZt5o687csp-s6bOJjS66a59mXHR6Ej/exec";
+"https://script.google.com/macros/s/AKfycbwzgq4k3NUCLvFvO4SS6vJDUjbNHGwrhuEEnZ6D5cA0mVmmFxlY5dE6qWbns3U-7EcZ/exec";
+
+// Must match the CLIENT_TOKEN constant set in the Apps Script Code.gs.
+// This is NOT strong security (it's visible in browser devtools/source), it just
+// stops casual/automated spam of your endpoint. Real protection is the
+// server-side price floor in Code.gs.
+const CLIENT_TOKEN = "FIDG";
 
 const history = [];
+let sending = false;
 
-/* 💬 UI */
 function add(text, cls){
     const div = document.createElement("div");
     div.className = "msg " + cls;
     div.textContent = text;
     document.getElementById("log").appendChild(div);
+    div.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
-/* 📦 send */
-async function send(){
+function setSending(state){
+    sending = state;
+    document.getElementById("sendBtn").disabled = state;
+}
 
+async function send(){
+    if (sending) return;
     const input = document.getElementById("input");
     const text = input.value.trim();
     if(!text) return;
-
     input.value = "";
     add(text, "user");
-
     history.push({ role:"user", parts:[{text}] });
-
+    setSending(true);
     try {
-
         const res = await fetch(ENDPOINT, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ history })
+            body: JSON.stringify({ history, token: CLIENT_TOKEN })
         });
-
         const data = await res.json();
-
-        add(data.reply, "ai");
-
-        history.push({ role:"model", parts:[{text: data.reply}] });
-
-        if(data.orderSent){
-            add("📦 Order emailed successfully!", "ai");
+        if (data.error) {
+            add("⚠️ " + data.error, "ai error");
+        } else {
+            add(data.reply, "ai");
+            history.push({ role:"model", parts:[{text: data.reply}] });
+            if(data.orderSent){
+                add("📦 Order emailed successfully!", "ai");
+            }
         }
-
     } catch (e) {
-        add("⚠️ Connection error", "ai");
+        add("⚠️ Connection error", "ai error");
+    } finally {
+        setSending(false);
     }
 }
 
@@ -191,8 +188,6 @@ document.getElementById("input").addEventListener("keydown", e => {
         send();
     }
 });
-
 </script>
-
 </body>
 </html>
