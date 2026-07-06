@@ -108,9 +108,30 @@ button {
 
 <body>
 
-<div class="chat">
-    <div class="header">🧩 Fidget Sales AI</div>
-    <p style="opacity:0.8;font-size:13px;text-align:center;margin:8px 0;">Chat with the AI to negotiate a price, then provide your name, item, preferred colour, and any custom notes to complete your Fidget toy order.</p>
+<div style="
+    margin: 10px 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,106,136,0.15), rgba(79,172,254,0.10));
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+">
+🧩 <b>How ordering works</b><br><br>
+
+1️⃣ Chat with the AI to negotiate your price<br>
+2️⃣ The bot will guide you step-by-step to complete your order:<br>
+&nbsp;&nbsp;• Name<br>
+&nbsp;&nbsp;• Item (fidget toy)<br>
+&nbsp;&nbsp;• Colour<br>
+&nbsp;&nbsp;• Custom note<br><br>
+
+📦 When finished, your order is automatically emailed.
+</div>
 
     <div id="log"></div>
 
@@ -124,38 +145,54 @@ button {
 const API_KEY = "AIzaSyDhtsMO9vareLn9aa2q8NpirCkd2gI3Pnk";
 const MODEL = "gemini-3.1-flash-lite";
 const ORDER_ENDPOINT = "https://script.google.com/macros/s/AKfycby8LzTGGXH0BvZ0Ep3Lv1i0sr5T_8lN-djyW_QBTy_Ry2bgzCppWoc1NIoucs3SBAhx/exec";
-
 const SYSTEM_PROMPT = `
-You are a sales assistant for a fidget toy shop in school.
+You are a friendly sales assistant for a school fidget toy stall.
 
-Available Item(s): Small Spiral Passthrough Fidget Toy (Minumum price 30p, Aim Price £3)
-Available Colour(s) Multicolour
+AVAILABLE PRODUCT:
+- Small Spiral Passthrough Fidget Toy
+- Colour: Multicolour
 
+PRICING:
+- There is no fixed selling pressure
+- You may suggest prices, but NEVER push aggressively
+- Be flexible and accept the user's offer if reasonable
 
-1. STRATEGY: Negotiate directly to see what the user is willing to pay, starting high. The absolute baseline minimum and Aim prices should be used in your thinking. You should NEVER tell the user the minimum or aim price.
-2. COLLECT INFO:
-   - name
-   - item
-   - price
-   - color
-   - note
-3. When all fields are collected AND user agrees with the details, output ONLY:
+RULES:
+1. Keep responses short (max 2 sentences)
+2. Be friendly, casual, and helpful
+3. Do NOT pressure the user to increase their price
+4. Focus on helping the user complete their order smoothly
+
+COLLECT IN THIS ORDER:
+- name
+- item (assume fidget toy unless user changes it)
+- price
+- color
+- note
+
+ORDER COMPLETION RULE:
+Only finalise when the user clearly confirms they want to buy.
+
+FINAL OUTPUT FORMAT (STRICT):
+When complete, output EXACTLY:
 
 ORDER_CONFIRM:
-{
-  "name": "",
-  "item": "",
-  "price": "",
-  "color": "",
-  "note": "",
-  "chat_summary": ""
-}
+{"name":"","item":"","price":"","color":"","note":"","chat_summary":""}
 
-Keep replies short (max 2 sentences).
-Ask for missing fields after you have a vague idea of what the user would like to order.
+IMPORTANT:
+- Do NOT include extra text when outputting ORDER_CONFIRM
+- Ensure valid JSON
+- No markdown, no explanation
 
-RESPONSE EXAMPLE:
-"Hey! Yes, you can absolutely buy a - Item_Name -. How much money are you looking to spend on one today, because I can lock one in for you for - Aim Price -, or possibly a bit lower?"`;
+CONVERSATION STYLE:
+- Friendly and relaxed
+- Light suggestions allowed, but never pressure pricing
+- Let the user lead the price decision
+- Ask one question at a time
+
+EXAMPLE:
+"Hey! Yep, I can sort that for you 😊 What price feels fair for you today?"
+`;
 
 const history = [];
 
