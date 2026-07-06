@@ -157,29 +157,25 @@ button:hover {
 const ORDER_ENDPOINT =
 "https://script.google.com/macros/s/AKfycbxo6F38MRvZsgLItDfYksWWuLcROhliOe1nYBlrgdysFeHEl4iP0FVNXDWr9L50kYoF/exec";
 
-/* 🧠 RESTORED + IMPROVED PROMPT */
 const SYSTEM_PROMPT = `
 You are a friendly school fidget toy sales assistant.
 
-Your job is to:
-1. Negotiate price casually (NOT pushy)
-2. Help user complete an order smoothly
-3. Keep responses short (max 2 sentences)
+TASK:
+- Help user negotiate price casually (NOT pushy)
+- Collect: name, item, price, color, note
+- Keep replies max 2 sentences
 
 PRODUCT:
 - Small Spiral Passthrough Fidget Toy
 - Multicolour
 
-COLLECT:
-name, item, price, color, note
-
-STYLE:
-- Friendly, casual, not aggressive
-- Let user lead pricing
-- No pressure tactics
+RULES:
+- Friendly tone
+- No pressure on pricing
+- Ask one question at a time
 
 FINAL OUTPUT (STRICT):
-When ready, output ONLY:
+ONLY when complete output:
 
 ORDER_CONFIRM:
 {"name":"","item":"","price":"","color":"","note":"","chat_summary":""}
@@ -197,6 +193,19 @@ function add(text, cls){
     log.scrollTop = log.scrollHeight;
 }
 
+/* 🧠 SAFE PARSE */
+function extractOrder(text){
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if(start === -1 || end === -1) return null;
+
+    try {
+        return JSON.parse(text.slice(start, end + 1));
+    } catch {
+        return null;
+    }
+}
+
 async function send(){
 
     const input = document.getElementById("input");
@@ -210,50 +219,40 @@ async function send(){
 
     try {
 
-        const res = await fetch(ORDER_ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: history,
-                systemInstruction: {
-                    parts: [{ text: SYSTEM_PROMPT }]
-                }
-            })
-        });
+        const payload = encodeURIComponent(JSON.stringify({
+            contents: history,
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
+        }));
 
+        const res = await fetch(ORDER_ENDPOINT + "?data=" + payload);
         const data = await res.json();
 
         const reply =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text
-            || data?.error
-            || "⚠️ No response";
+            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+            data?.text ||
+            "⚠️ No response";
 
         add(reply, "ai");
 
         history.push({ role:"model", parts:[{text: reply}] });
 
-        /* 📦 ORDER HANDLING */
-        if(reply.includes("ORDER_CONFIRM:")){
-            const match = reply.match(/\{[\s\S]*\}/);
+        /* 📦 ORDER HANDLER */
+        if(reply.includes("ORDER_CONFIRM")){
+            const order = extractOrder(reply);
 
-            if(match){
-                try{
-                    const order = JSON.parse(match[0]);
+            if(order){
+                await fetch(ORDER_ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        order,
+                        full_chat_history: history
+                    })
+                });
 
-                    await fetch(ORDER_ENDPOINT, {
-                        method:"POST",
-                        headers: { "Content-Type":"application/json" },
-                        body: JSON.stringify({
-                            ...order,
-                            full_chat_history: history
-                        })
-                    });
-
-                    add("📦 Order sent!", "ai");
-
-                } catch(e){
-                    add("⚠️ Order failed", "ai");
-                }
+                add("📦 Order sent!", "ai");
+            } else {
+                add("⚠️ Could not parse order", "ai");
             }
         }
 
@@ -263,7 +262,7 @@ async function send(){
     }
 }
 
-/* enter to send */
+/* enter send */
 document.getElementById("input").addEventListener("keydown", e => {
     if(e.key === "Enter" && !e.shiftKey){
         e.preventDefault();
